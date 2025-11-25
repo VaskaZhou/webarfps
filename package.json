@@ -1,0 +1,20 @@
+{
+  "name": "webarfps",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2"
+  },
+  "dependencies": {
+    "babylonjs": "^8.29.0",
+    "babylonjs-gui": "^8.29.0",
+    "babylonjs-loaders": "^8.29.0"
+  }
+}
