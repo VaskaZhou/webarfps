@@ -26,14 +26,15 @@ export function initPauseOverlay(scene: BABYLON.Scene) {
   text.top = "-100px"
   texture.addControl(text)
 
-  const img = new GUI.Image("cornerImg", "/textures/bg1.png")
+  const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/'); 
+  const img = new GUI.Image("cornerImg", `${basePath}textures/bg1.png`)
   img.width = "280px"
   img.height = "280px"
   //img.left = "-100px"
   img.top = "280px"
   texture.addControl(img)
 
-  spinner = new GUI.Image("spinner", "/textures/spinner.png")
+  spinner = new GUI.Image("spinner", `${basePath}textures/spinner.png`)
   spinner.width = "80px"
   spinner.height = "80px"
   texture.addControl(spinner)

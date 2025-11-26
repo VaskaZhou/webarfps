@@ -87,7 +87,8 @@ export class BulletManager {
 }
 function spawnDeathParticles(scene: BABYLON.Scene, position: BABYLON.Vector3, color: BABYLON.Color3) {
   const ps = new BABYLON.ParticleSystem("deathParticles", 100, scene)
-  ps.particleTexture = new BABYLON.Texture("/textures/flare.png", scene) // 小光点贴图，可自换
+  const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/'); 
+  ps.particleTexture = new BABYLON.Texture(`${basePath}textures/flare.png`, scene) // 小光点贴图，可自换
   ps.emitter = position.clone()
   ps.minEmitBox = new BABYLON.Vector3(-0.1, -0.1, -0.1)
   ps.maxEmitBox = new BABYLON.Vector3(0.1, 0.1, 0.1)

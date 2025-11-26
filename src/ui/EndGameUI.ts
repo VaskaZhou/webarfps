@@ -51,14 +51,15 @@ export function initEndGameUI(scene: BABYLON.Scene, onRestart: () => void) {
   restartBtn.top = "60px"
   ui.addControl(restartBtn)
 
-  img1 = new GUI.Image("cornerImg", "/textures/win.png")
+  const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/'); 
+  img1 = new GUI.Image("cornerImg", `${basePath}/win.png`)
   img1.width = "180px"
   img1.height = "180px"
   img1.top = "280px"
   ui.addControl(img1)
   img1.isVisible = false
     
-  img2 = new GUI.Image("cornerImg", "/textures/lose.png")
+  img2 = new GUI.Image("cornerImg", `${basePath}textures/lose.png`)
   img2.width = "180px"
   img2.height = "180px"
   img2.top = "280px"

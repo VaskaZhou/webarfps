@@ -22,9 +22,11 @@ export class MonsterManager {
   async spawnMonster(pos: Vector3) {
     const model = this.monsterModels[Math.floor(Math.random() * this.monsterModels.length)]
 
-    // ✅ 使用 LoadAssetContainerAsync + Options
+    const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/');      
+
+    // 使用 LoadAssetContainerAsync + Options
     const container = await SceneLoader.LoadAssetContainerAsync(
-      "/models/",
+      `${basePath}models/`,
       model.file,
       this.scene,
       (evt: ISceneLoaderProgressEvent) => {

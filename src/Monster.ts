@@ -49,7 +49,8 @@ export class Monster {
 
     // 🔥 Attack hit particle effect (small red flash)
     const ps = new BABYLON.ParticleSystem("attackParticles", 60, this.mesh.getScene() as unknown as BABYLON.Scene)
-    ps.particleTexture = new BABYLON.Texture("/textures/flare.png", this.mesh.getScene() as unknown as BABYLON.Scene)
+    const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/'); 
+    ps.particleTexture = new BABYLON.Texture(`${basePath}textures/flare.png`, this.mesh.getScene() as unknown as BABYLON.Scene)
     ps.emitter = this.mesh.position.clone() as unknown as BABYLON.Vector3
     // ps.minEmitBox = new BABYLON.Vector3(-0.05, -0.05, -0.05)
     // ps.maxEmitBox = new BABYLON.Vector3(0.05, 0.05, 0.05)

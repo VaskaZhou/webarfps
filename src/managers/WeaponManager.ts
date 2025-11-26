@@ -19,7 +19,8 @@ export class WeaponManager {
 
   // Default weapon: simple yellow sphere
   private registerDefaultBullet() {
-    BABYLON.SceneLoader.LoadAssetContainerAsync("/models/", "slipper.glb", this.scene)
+    const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/'); 
+    BABYLON.SceneLoader.LoadAssetContainerAsync(`${basePath}models/`, "slipper.glb", this.scene)
     .then(container => {
       container.addAllToScene()
 
