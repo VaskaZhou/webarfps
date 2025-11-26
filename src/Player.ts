@@ -4,8 +4,8 @@ import { gameState } from "./GameState"
 import { showEndGameUI } from "./ui/EndGameUI"
 
 export class Player {
-  health: number = 10
-  maxHealth: number = 10
+  health: number = 100
+  maxHealth: number = 100
   healthBarGreen: GUI.Rectangle
   healthBarRed: GUI.Rectangle
   // ✅ 射击冷却

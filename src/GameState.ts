@@ -8,7 +8,7 @@ export class GameState {
 
   // thresholds[phase] = 进入下一阶段所需分数
   // 最后一个 100 是胜利条件
-  thresholds = [0, 2, 5, 7, 10]
+  thresholds = [0, 12, 25, 37, 50]
   maxPhase = 4  // Phase 4 是最后一关（4 → 100 分为胜利）
 
   addScore(amount: number) {
