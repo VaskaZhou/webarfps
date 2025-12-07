@@ -14,6 +14,8 @@ export class Player {
   cooldownProgress: number = 0 // 0~1
   cooldownBar: GUI.Rectangle
 
+  private _unsubscribeScore?: () => void
+
 
   constructor(scene: BABYLON.Scene) {
     // 创建 UI
@@ -63,6 +65,12 @@ export class Player {
     this.healthBarGreen = green
     this.healthBarRed = red
     this.cooldownBar = cooldownFill
+
+    this._unsubscribeScore = gameState.subscribeScore((amount, newScore) => {
+      // Phase 4 lifesteal
+      console.log(`Player get score: ${amount}. Now score is: ${newScore}`)
+      if (this.health < this.maxHealth && gameState.phase==4)this.health += 1
+    })
   }
 
   takeDamage(amount: number) {
@@ -117,5 +125,10 @@ export class Player {
     // 重置玩家状态
     this.health = this.maxHealth
     this.updateHealthBar()
+  }
+
+  dispose() {
+    // 清理监听器
+    this._unsubscribeScore && this._unsubscribeScore()
   }
 }

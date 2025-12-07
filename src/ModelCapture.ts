@@ -47,7 +47,7 @@ export class ModelCapture {
     this.tip = document.createElement("div")
     this.tip.textContent = "Align your object inside the frame"
     this.tip.style.margin = "12px"
-    this.tip.style.fontSize = "18px"
+    this.tip.style.fontSize = "14px"
     this.container.appendChild(this.tip)
 
     // === Existing capture button ===
@@ -66,27 +66,27 @@ export class ModelCapture {
   this.container.appendChild(this.button)
 
   // === NEW: "Skip" button ===
-  const skipBtn = document.createElement("button")
-  skipBtn.textContent = "Skip (Start Game)"
-  skipBtn.style.cssText = `
-    padding: 10px 18px;
-    background: #555;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    cursor: pointer;
-    margin-top: 10px;
-    opacity: 0.9;
-  `
-  this.container.appendChild(skipBtn)
+  // const skipBtn = document.createElement("button")
+  // skipBtn.textContent = "Skip (Start Game)"
+  // skipBtn.style.cssText = `
+  //   padding: 10px 18px;
+  //   background: #555;
+  //   color: white;
+  //   border: none;
+  //   border-radius: 6px;
+  //   font-size: 15px;
+  //   cursor: pointer;
+  //   margin-top: 10px;
+  //   opacity: 0.9;
+  // `
+  // this.container.appendChild(skipBtn)
 
-  // When skip clicked → stop camera and exit immediately
-  skipBtn.onclick = () => {
-    const stream = this.video.srcObject as MediaStream | null
-    if (stream) stream.getTracks().forEach(t => t.stop())
-    this.dispose()
-  }
+  // // When skip clicked → stop camera and exit immediately
+  // skipBtn.onclick = () => {
+  //   const stream = this.video.srcObject as MediaStream | null
+  //   if (stream) stream.getTracks().forEach(t => t.stop())
+  //   this.dispose()
+  // }
 
     document.body.appendChild(this.container)
   }
@@ -145,47 +145,75 @@ export class ModelCapture {
 
   private startUploadJob(imageBlob: Blob, index: number) {
   ;(async () => {
-    try {
-      const form = new FormData();
-      form.append("file", imageBlob, "input.jpg");
-      console.log(`[ModelCapture] Uploading slot ${index}...`);
 
-      // 1️⃣ 调用 /reconstruct（此处返回 JSON，不是模型）
-      const resp = await fetch(this.ENDPOINT, {
-        method: "POST",
-        body: form,
-      });
+    // --------------------------
+    // 1️⃣ POST /reconstruct 带重试
+    // --------------------------
+    const tryPostReconstruct = async (retry = 0): Promise<Response> => {
+      try {
+        const form = new FormData();
+        form.append("file", imageBlob, "input.jpg");
 
-      if (!resp.ok) {
-        console.error("[ModelCapture] HTTP error", resp.status);
-        return;
+        console.log(`[ModelCapture] Uploading slot ${index}, attempt ${retry + 1}...`);
+
+        const resp = await fetch(this.ENDPOINT, {
+          method: "POST",
+          body: form,
+        });
+
+        if (resp.ok) return resp;
+
+        // ❌ 如果是 429（或 5xx），我们重试
+        if ((resp.status === 429 || resp.status >= 500) && retry < 15) {
+          console.warn(`[ModelCapture] Server busy (HTTP ${resp.status}), retrying in 1s...`);
+          await new Promise(r => setTimeout(r, 1000)); // ← 1 秒重试间隔
+          return tryPostReconstruct(retry + 1);
+        }
+
+        throw resp;
+
+      } catch (err) {
+        if (retry < 15) {
+          console.warn("[ModelCapture] Network error, retrying in 1s...", err);
+          await new Promise(r => setTimeout(r, 1000));
+          return tryPostReconstruct(retry + 1);
+        }
+        throw err;
       }
+    };
+
+    try {
+      const resp = await tryPostReconstruct();  // ← 这里已经包含重试机制
 
       const data = await resp.json();
-      const modelUrl = data.url; // Cloud Storage 上未来的模型 URL
-
+      const modelUrl = data.url;
       console.log("[ModelCapture] Job queued, polling:", modelUrl);
 
-      // 2️⃣ 轮询 Cloud Storage 文件是否已经生成
+
+      // --------------------------
+      // 2️⃣ 轮询模型是否生成
+      // --------------------------
       const waitForModel = async () => {
         while (true) {
           try {
-            const check = await fetch(modelUrl, { method: "HEAD" });
-            if (check.ok) {
+            const head = await fetch(modelUrl, { method: "HEAD" });
+            if (head.ok) {
               console.log("[ModelCapture] Model is ready:", modelUrl);
-              return true;
+              return;
             }
-          } catch (e) {
-            // ignore (still not ready)
-          }
-          console.log("[ModelCapture] Model not ready yet, waiting...");
-          await new Promise((r) => setTimeout(r, 2000)); // 等 2 秒
+          } catch { }
+
+          console.log("[ModelCapture] Model not ready, waiting 5s...");
+          await new Promise(r => setTimeout(r, 5000));
         }
       };
 
       await waitForModel();
 
-      // 3️⃣ 模型准备好后，直接使用 URL 作为 GLB 路径
+
+      // --------------------------
+      // 3️⃣ 模型注册为武器
+      // --------------------------
       await this.weaponManager.registerWeaponFromGLB(modelUrl, { scale: 0.15 });
 
       if (gameState.paused) {
@@ -197,10 +225,11 @@ export class ModelCapture {
       console.log(`[ModelCapture] Slot ${index} ready and registered.`);
 
     } catch (e) {
-      console.error("[ModelCapture] Upload failed", e);
+      console.error("[ModelCapture] Upload failed after retries:", e);
     }
   })();
 }
+
 
 
   private dispose() {

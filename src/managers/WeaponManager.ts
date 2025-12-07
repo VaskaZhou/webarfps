@@ -10,7 +10,7 @@ type Weapon = {
 export class WeaponManager {
   private scene: BABYLON.Scene
   public weapons: Weapon[] = []
-  private current = 0
+  public current = 0
 
   constructor(scene: BABYLON.Scene) {
     this.scene = scene

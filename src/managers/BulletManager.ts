@@ -4,6 +4,7 @@ import { MonsterManager } from "./MonsterManager"
 import { WeaponManager } from "./WeaponManager"
 import { gameState } from "../GameState"
 import { showPauseOverlay  } from "../ui/PauseOverlay"
+import { showUpgradePopup } from "../ui/ProgressBar"
 
 
 export class BulletManager {
@@ -45,12 +46,15 @@ export class BulletManager {
       for (const monster of this.monsterManager.monsters) {
         if (!monster.alive) continue
         const dist = BABYLON.Vector3.Distance(bullet.position, monster.mesh.position)
-        if (dist < 0.1) { // 0.1 距离内算命中
+        let hitbox = 0.08
+        if(gameState.phase>=3) hitbox=0.16// Phase 3 increase hitbox
+        if (dist < hitbox) {
+          const shouldRemoveBullet = gameState.phase < 2 // Phase 2 之前子弹击中后消失
           // Spawn color particle effect
           spawnDeathParticles(this.scene, monster.mesh.position, monster.color)
           monster.mesh.dispose()
           monster.alive = false
-          bullet.dispose()
+          if(shouldRemoveBullet) bullet.dispose() //Afer phase 2, bullets pierce monsters
 
           //  加分
           gameState.addScore(1)
@@ -59,23 +63,23 @@ export class BulletManager {
           const nextWeaponIndex = gameState.phase // 下一个阶段需要的 weapon index
           const nextWeaponReady = this.weaponManager.weapons.length > nextWeaponIndex
           
-          //let nextWeaponReady = this.weaponManager.weapons.length > nextWeaponIndex
-          //nextWeaponReady=true // 测试用，跳过暂停
+          //let nextWeaponReady=true // 测试用，跳过暂停
           if (gameState.canAdvancePhase(nextWeaponReady)) {
             gameState.advancePhase()
             console.log(`[Game] Phase ${gameState.phase} reached!`)
             this.weaponManager.setCurrentWeapon(nextWeaponIndex)//comment if test
+            showUpgradePopup(this.scene, gameState.phase)//show upgrade UI
           } else if (gameState.phase < gameState.maxPhase && gameState.score >= gameState.thresholds[gameState.phase] && !nextWeaponReady) {
             gameState.pause()
             showPauseOverlay()
           }
 
-          return false // bullet 被移除
+          if(shouldRemoveBullet)return false // bullet 被移除，但是Afer phase 2, bullets pierce monsters
         }
       }
 
       // ---- 子弹生命周期（飞 3 秒自动销毁） ----
-      if (now - bullet.metadata.bornTime > 2400) {
+      if (now - bullet.metadata.bornTime > 3000) {
         bullet.dispose()
         return false
       }

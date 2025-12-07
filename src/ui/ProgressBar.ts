@@ -60,3 +60,55 @@ for (let i = 1; i < gameState.thresholds.length; i++) {
     bar.width = `${Math.min(1, p) * 100}%`
   })
 }
+
+// =======================
+// Upgrade popup message
+// =======================
+export function showUpgradePopup(scene: BABYLON.Scene, phase: number) {
+  const ui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("upgradeUI", true, scene)
+
+  const msg = new GUI.TextBlock()
+  msg.text = getMessageForPhase(phase)
+  msg.color = "white"
+  msg.fontSize = 36
+  msg.outlineWidth = 4
+  msg.outlineColor = "black"
+
+  msg.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+  msg.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER
+
+  ui.addControl(msg)
+
+  // ---- 动画效果：上升 + 放大 + 淡出 ----
+  const animTime = 180
+  let frame = 0
+
+  scene.onBeforeRenderObservable.add(function animate() {
+    frame++
+
+    // 向上漂浮
+    msg.top = -frame * 1.2
+
+    // 放大
+    msg.scaleX = msg.scaleY = 1 + frame * 0.01
+
+    // 渐隐
+    msg.alpha = 1 - frame / animTime
+
+    if (frame >= animTime) {
+      ui.dispose()
+      scene.onBeforeRenderObservable.removeCallback(animate)
+    }
+  })
+}
+
+
+// Choose message based on phase
+function getMessageForPhase(phase: number): string {
+  switch (phase) {
+    case 2: return "Piercing unlocked! \nCrush those bugs like paper."
+    case 3: return "Blast radius increased! \nWipe them all out!"
+    case 4: return "Lifesteal activated! \nBring down the swarm!"
+    default: return "Upgrade!"
+  }
+}

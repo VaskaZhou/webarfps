@@ -20,6 +20,10 @@ export class MonsterManager {
   }
 
   async spawnMonster(pos: Vector3) {
+    const aliveCount = this.monsters.filter(m => m.alive).length
+    if (aliveCount >= 30) {
+      return null
+    }
     const model = this.monsterModels[Math.floor(Math.random() * this.monsterModels.length)]
 
     const basePath = window.location.origin + (window.location.pathname.includes('webarfps') ? '/webarfps/' : '/');      
@@ -45,9 +49,9 @@ export class MonsterManager {
 
     // 应用偏移，保持原始Y值
     const spawnPos = new Vector3(
-      pos.x + (Math.random()*2 -1)*0.2,
+      pos.x + (Math.random()*2 -1)*0.3,
       pos.y,
-      pos.z + (Math.random()*2 -1)*0.2,
+      pos.z + (Math.random()*2 -1)*0.3,
     )
     mesh.position.copyFrom(spawnPos)
     if (model.file === "bee.glb") {
